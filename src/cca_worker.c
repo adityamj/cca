@@ -12,27 +12,71 @@
 */
 
 void infected( struct ca_cell * cell){
+	double p = 0;
+	double rand;
+	rand = cca_rng_get();
 	cell->age_of_infection++;
 	if( cell->age_of_infection == 1){
-		
-
+		if( chooseit( conf.i_to_h)){
+			new_hsil();
+			cell->current_status = 3;
+		}	
 	}
-
-
+	else {
+		if( rand <= ( p = i_to_n_p( cell->age))){
+			cell->current_status = 5;
+			cell->age_of_infection = 0;
+			infection_recovered();
+		}
+		else if ( rand <= ( p+= i_to_l_p())){
+			cell->current_status = 2;
+			new_lsil();
+		}
+	}
 }
 
 void hsil( struct ca_cell * cell){
+	double p;
+	double rand;
+	rand = cca_rng_get();
+	p = 0;
+	cell->age_of_infection++;
+	if( rand <= ( p = h_to_l_p( cell->age_of_infection))){ // recovery to lsil
+		hsil_to_lsil();
+		new_lsil();
+		cell->current_status = 2;
+	}
+	else if( rand <= ( p += h_to_c_p()) ){	// cancer
+		cell->current_status = 4;
+		new_cancer();
+		cell->age_of_infection = 0;
+	}
 }
 
-void lsil( struct ca_cell * cell){}
+void lsil( struct ca_cell * cell){
+	double p;
+	double rand;
+	rand = cca_rng_get();
+	p = 0;
+	cell->age_of_infection++;
+	if( rand <= ( p = l_to_h_p( cell->age))){ // recovery to lsil
+		new_hsil( p);
+		cell->current_status = 3;
+	}
+	else if( rand <= ( p += l_to_i_p(cell->age, cell->age_of_infection)) ){	// cancer
+		cell->current_status = 5;
+		cell->age_of_infection = 0;
+		lsil_to_normal();
+	}
+}
 
 void recovered( struct ca_cell * cell){
 	int choice;
-
 	choice = chooseit( conf.r_to_n / conf.r_to_n_time);
 	if(choice)
 		cell->current_status = 0;
 }
+
 void populate(struct ca_grid * t){
 	int size;
 	double rand;
