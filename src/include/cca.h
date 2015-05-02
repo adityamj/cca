@@ -45,6 +45,8 @@ struct cca_conf{
 	double h_to_c_time;
 	double r_to_n;
 	int r_to_n_time;
+	double c_to_d;
+	int c_to_d_time;
 };
 
 extern struct cli_opts opts;

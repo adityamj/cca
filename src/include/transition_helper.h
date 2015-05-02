@@ -3,6 +3,8 @@
 #include <cca_ca.h>
 #include <cca.h>
 
+extern double birth_p();
+extern double c_to_d_p();
 extern void new_infected(); //func
 extern void reset_yearly_counts();//func
 extern void hsil_to_lsil();//func
@@ -21,4 +23,5 @@ extern double l_to_h_p ( int age) ; //func
 extern double h_to_l_p( int age_of_infection);	//func
 extern double h_to_c_p(); //func
 extern void new_lsil();
+
 #endif

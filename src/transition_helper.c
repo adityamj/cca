@@ -5,38 +5,29 @@
 #include <cca_ca.h>
 #include <transition_helper.h>
 
-
 static struct cca_state state = CCA_STATE_INIT;
-void new_infected(){ //func
-	state.total_infected++;
+double birth_p(){
+	double p;
+	p = ((conf.birth_rate * state.population) /  ( conf.size*conf.size*conf.size - state.population))/12;
+	return p;
 }
+void new_infected(){ state.total_infected++; }
 
-void new_lsil(){
-	state.lsil_total++;
-
-}
+void new_lsil(){ state.lsil_total++; }
 
 void reset_yearly_counts(){//func
 	state.yearly_vaccinated = 0;
 	state.yearly_screened = 0;
 }
-void hsil_to_lsil(){//func
-	state.hsil_to_lsil++;
-}
+void hsil_to_lsil(){ state.hsil_to_lsil++; }
 
-void new_hsil(){//func
-	state.hsil_total++;
-}
-void lsil_to_normal(){//func
-	state.lsil_to_normal++;
-}
+void new_hsil(){ state.hsil_total++; }
 
-void infection_recovered(){//func
-	state.infected_to_normal++;
-}
-void new_cancer(){//func
-	state.total_cancer++;
-}
+void lsil_to_normal(){ state.lsil_to_normal++; }
+
+void infection_recovered(){ state.infected_to_normal++; }
+
+void new_cancer(){ state.total_cancer++; }
 
 int should_die(struct ca_cell * cell ){	//func
 	static double m_death_rate;
@@ -53,13 +44,9 @@ int should_die(struct ca_cell * cell ){	//func
 	return ret;
 }
 
-void death(){	//func
-	state.population--;
-}
+void death(){	state.population--; }
 
-void birth(){	//func
-	state.population++;
-}
+void birth(){	state.population++; }
 
 int get_population(){	//func
 	return state.population;
@@ -104,3 +91,10 @@ double h_to_c_p(){ //func
 	ret =  conf.h_to_c / conf.h_to_c_time ;
 	return ret;
 }
+
+double c_to_d_p(){
+	double ret;
+	ret = conf.c_to_d / conf.c_to_d_time;
+	return ret;
+}
+

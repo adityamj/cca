@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <cca_worker.h>
@@ -10,6 +11,22 @@
 	Activity group
 	existing infection
 */
+
+void sim_birth( struct ca_cell * cell){
+	double p;
+	p = birth_p();
+	if( chooseit(p)){
+		cell->activity_group = acg_oracle( MIN_AGE * 12);
+		cell->occupied = 1;
+		cell->age = MIN_AGE * 12;
+
+		p = cca_rng_get();
+		if ( p <= conf.asir[ cell->age-MIN_AGE ]){
+			cell->current_status = 1;	
+			new_infected();
+		}
+	}
+}
 
 void infected( struct ca_cell * cell){
 	double p = 0;
@@ -75,6 +92,16 @@ void recovered( struct ca_cell * cell){
 	choice = chooseit( conf.r_to_n / conf.r_to_n_time);
 	if(choice)
 		cell->current_status = 0;
+}
+
+void cancer( struct ca_cell * cell){
+	int choice;
+	choice = chooseit( c_to_d_p());
+	if( choice){
+		death();
+		memset( cell, 0, sizeof(struct ca_cell));
+	}
+
 }
 
 void populate(struct ca_grid * t){
@@ -147,6 +174,7 @@ int should_infect( struct ca_grid *t, int x, int y, int z, double p){
 			}
 	return ret;
 }
+
 int get_num_neigh( struct ca_grid *t, int x, int y, int z){
 	int xx, yy, zz;
 	int neigh=0;
@@ -177,6 +205,7 @@ int get_num_neigh( struct ca_grid *t, int x, int y, int z){
 			}
 	return neigh;
 }
+
 void simulate ( struct ca_grid * t, struct ca_grid * t1){
 	int x,y,z;
 	x=y=z=0;
@@ -237,6 +266,7 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 							break;
 						}
 						case 4:{ //cancer; nothing to do. wait. Accounting is already done by hsil
+							cancer( t1_cell);
 							break;
 						}
 						case 5:{
@@ -249,9 +279,57 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 				}
 				else{
 				// add a new individual to the simulation ?birth()
+					sim_birth( t1_cell);
 				}
 			}	
 
+}
+int do_reporting( struct ca_grid * t, int count, int pid){
+	static int init;
+	static FILE * fp;
+	int hsil[4] = {0,0,0,0}, lsil[4] = {0,0,0,0}, inf[4] = {0,0,0,0}, cancer[4] = {0,0,0,0};
+	int c, limit;
+	int ag;
+	int sizeoffn;
+	char * fname;
+	struct ca_cell * curr;
+	limit = conf.size*conf.size*conf.size;
+	if( !init){
+		sizeoffn = strlen( opts.data_dir) + strlen(opts.prefix) + 30;
+		fname = (char*) calloc(sizeof(char), sizeoffn);
+		if(fname == NULL)
+			return 2;
+		snprintf( fname, sizeoffn, "%s/%s_%d.out",opts.data_dir, opts.prefix, pid);
+		if( (fp = fopen( fname, "a")) == NULL)
+			return 1;
+		fprintf(fp,"time, age_group, status, number\n");
+		init = 1;
+	}
+	for( c = 0; c < limit; c++){
+		curr = t->cells + c;
+		ag = tellag( curr->age);	
+		switch ( curr->current_status){
+			case 1:
+				inf[ag]++;
+				break;
+			case 2:
+				lsil[ag]++;
+				break;
+			case 3:
+				hsil[ag]++;
+				break;
+			case 4:
+				cancer[ag]++;
+				break;
+		}
+	}
+	for( c=0; c< 4; c++){
+		fprintf(fp, "%d,%d,infected,%d\n",count, c, inf[c]);
+		fprintf(fp, "%d,%d,lsil,%d\n",count, c, lsil[c]);
+		fprintf(fp, "%d,%d,hsil,%d\n",count, c, hsil[c]);
+		fprintf(fp, "%d,%d,cancer,%d\n",count, c, cancer[c]);
+	}
+	return 0;
 }
 
 int worker_fork(int pindex){
@@ -287,12 +365,17 @@ int worker_fork(int pindex){
 		t.cells = t1.cells;
 		t1.cells = swap.cells;
 		if( count%60 == 0){
-			    if( (ret = do_reporting( t, count, pindex)) ){
+			    if( (ret = do_reporting( &t, count, pindex)) ){
 				free(t.cells);
 				free(t1.cells);
 				return ( ret + 20);
 			    }
 		}
+	}
+	if( (ret = do_reporting( &t, count, pindex)) ){
+		free(t.cells);
+		free(t1.cells);
+		return ( ret + 20);
 	}
 	return 0;
 }
