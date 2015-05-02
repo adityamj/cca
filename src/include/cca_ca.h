@@ -18,9 +18,9 @@ struct ca_cell {
 
 };
 
-struct ca_grid_cubic {
+struct ca_grid {
 	int size; //size of side. 100 = 100^3 cells
 	struct ca_cell * cells;
-}
+};
 #endif
 

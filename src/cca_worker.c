@@ -1,9 +1,11 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include <cca_worker.h>
 #include <transition_helper.h>
 #include <cca_ca.h>
 #include <cca.h>
 #include <cca_groups.h>
-
+#include <string.h>
 /*	Age
 	Activity group
 	existing infection
@@ -12,13 +14,25 @@
 void infected( struct ca_cell * cell){
 	cell->age_of_infection++;
 	if( cell->age_of_infection == 1){
-
+		
 
 	}
 
 
 }
 
+void hsil( struct ca_cell * cell){
+}
+
+void lsil( struct ca_cell * cell){}
+
+void recovered( struct ca_cell * cell){
+	int choice;
+
+	choice = chooseit( conf.r_to_n / conf.r_to_n_time);
+	if(choice)
+		cell->current_status = 0;
+}
 void populate(struct ca_grid * t){
 	int size;
 	double rand;
@@ -29,22 +43,24 @@ void populate(struct ca_grid * t){
 	struct ca_cell * curr_cell;
 	target_population = size * conf.population_density;
 	for( age = MIN_AGE; age <= MAX_AGE ; age++){
-		age_target_poulation = target_population * conf.age_ratio[ age - MIN_AGE] ;
+		age_target_population = target_population * conf.age_ratio[ age - MIN_AGE] ;
 		achieved = 0;
 		for ( achieved = 0; achieved <= age_target_population ; achieved++){
-			rand = cca_get_rand();
+			rand = cca_rng_get();
 			index = rand * size;
 			curr_cell = t->cells + index;
 			if( curr_cell->occupied){
 				achieved--;
 				continue;
 			}
+			birth();
 			curr_cell->occupied = 1;
 			curr_cell->age =age * 12;
 			curr_cell->activity_group = acg_oracle(curr_cell->age);
-			rand = cca_get_rand();
+			rand = cca_rng_get();
 			if ( rand <= conf.asir[ age-MIN_AGE ]){
 				curr_cell->current_status = 1;	
+				new_infected();
 			}
 		}
 	}
@@ -53,6 +69,7 @@ void populate(struct ca_grid * t){
 int should_infect( struct ca_grid *t, int x, int y, int z, double p){
 	int xx, yy, zz;
 	int ineigh=0;
+	int ret = 0;
 	struct ca_cell * curr;
 	if( x == 0)
 		xx = 0 ;
@@ -86,7 +103,7 @@ int should_infect( struct ca_grid *t, int x, int y, int z, double p){
 			}
 	return ret;
 }
-int num_neigh( struct ca_grid *t, int x, int y, int z){
+int get_num_neigh( struct ca_grid *t, int x, int y, int z){
 	int xx, yy, zz;
 	int neigh=0;
 	struct ca_cell * curr;
@@ -125,9 +142,9 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 	int num_neigh;
 	int ret;
 	double probability;
-	for( x = 0; x < t.size; x++)
-		for( y = 0; y < t.size; y++)
-			for ( z = 0; z< t.size ; z++){
+	for( x = 0; x < t->size; x++)
+		for( y = 0; y < t->size; y++)
+			for ( z = 0; z< t->size ; z++){
 				t_cell = translate (t->cells , x,y,z, t->size);
 				t1_cell = translate ( t1->cells, x,y,z, t->size);
 				memcpy ( t1_cell, t_cell, sizeof(struct ca_cell));	// Initialize our new cell.
@@ -163,27 +180,24 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 							}
 							break;
 						}
-						case 1:{
-							// Infected
-							void infected( t1_cell);	
+						case 1:{ // Infected
+							infected( t1_cell);	
 							break;
 						}
-						case 2:{
-							// lsil
-							void lsil( t1_cell);
+						case 2:{ // lsil
+							lsil( t1_cell);
 							break;
 						}
-						case 3:{
-							//hsil
-							void hsil( t1_cell);
+						case 3:{ //hsil
+							hsil( t1_cell);
 							break;
 						}
-						case 4:{
-							//cancer
+						case 4:{ //cancer; nothing to do. wait. Accounting is already done by hsil
 							break;
 						}
 						case 5:{
 							// immune
+							recovered( t1_cell);
 							break;
 						}
 					}
@@ -205,7 +219,7 @@ int worker_fork(int pindex){
 	struct ca_grid  swap;
 	t.size = conf.size;
 	t1.size = conf.size;
-        if((ret = cca_rng_init())){
+        if((ret = cca_rng_init()))
 		return (ret+30);	
 	
 	if ( ( t.cells = (struct ca_cell *) calloc( conf.size*conf.size*conf.size, sizeof(struct ca_cell))) == NULL){
@@ -236,4 +250,5 @@ int worker_fork(int pindex){
 			    }
 		}
 	}
+	return 0;
 }

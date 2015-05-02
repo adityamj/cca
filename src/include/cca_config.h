@@ -8,7 +8,7 @@
 #include <sys/types.h>
 
 #include <cca.h>
-int parse_conf ( const struct cli_opts * , struct cca_conf * ) ;
+int parse_conf ( struct cli_opts * , struct cca_conf * ) ;
 
 
 

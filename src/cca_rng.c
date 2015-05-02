@@ -1,5 +1,6 @@
 #include <gsl/gsl_rng.h>
 #include <stdlib.h>
+#include <cca_rng.h>
 
 static gsl_rng * r;
 
@@ -21,13 +22,16 @@ int cca_rng_init(){
 	return 0;
 }
 
+double cca_rng_get(){
+	return gsl_rng_uniform(r);
+}
+
 int chooseit (double p){
-	int ret 0 ;
+	int ret = 0 ;
 	double rand;
 	rand = cca_rng_get();
 	if ( rand <= p)
 		ret = 1;
-}
-double cca_rng_get(){
-	return gsl_rng_uniform(r);
+
+	return ret;
 }

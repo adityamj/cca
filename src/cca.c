@@ -83,7 +83,7 @@ int cca_main_loop(){
 		}
 		else{
 			active_workers++;
-			if( active_workers i< opts.procs)
+			if( active_workers < opts.procs)
 				continue;
 
 			if( (pid = wait(&status)) != -1)
@@ -104,7 +104,7 @@ int main(int argc, char ** argv){
 		exit (290+ret);
 	
 
-	if ( ( ret = parse_conf( opts, &conf ) ) ){
+	if ( ( ret = parse_conf( &opts, &conf ) ) ){
 		/*	Error reading the configuration file, crib and exit	*/
 		fprintf(stderr,"Unable to parse Configuration file. Please verify.\n");
 		exit (300+ret);

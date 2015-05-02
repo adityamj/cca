@@ -1,6 +1,7 @@
 #ifndef __TRANSITION_HELPER_H__
 #define __TRANSITION_HELPER_H__
-
+#include <cca_ca.h>
+#include <cca.h>
 
 extern int should_die(struct ca_cell * cell );	//func
 extern void death();	//func

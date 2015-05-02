@@ -2,6 +2,7 @@
 #define __CCA_H__
 #define MIN_AGE 15
 #define MAX_AGE 65
+
 struct cli_opts {
 	int procs;
 	char * data_dir;
@@ -42,6 +43,8 @@ struct cca_conf{
 	double h_to_l_frac;
 	double h_to_c;
 	double h_to_c_time;
+	double r_to_n;
+	int r_to_n_time;
 };
 
 extern struct cli_opts opts;
