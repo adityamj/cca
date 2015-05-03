@@ -102,6 +102,9 @@ int main(int argc, char ** argv){
 	if ((ret = read_cli(&opts, argc, argv)))
 		exit (290+ret);
 	
+#ifdef DEBUG
+	fprintf(stderr, "DEBUG Defined");
+#endif
 
 	if ( ( ret = parse_conf( &opts, &conf ) ) ){
 		/*	Error reading the configuration file, crib and exit	*/

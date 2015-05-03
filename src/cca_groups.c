@@ -9,7 +9,7 @@ int tellag( int age_inmonths){
 		return 1;
 	else if ( age_inmonths/12 >= 25 && age_inmonths/12 <= 34)
 		return 2;
-	else if ( age_inmonths/12 >= 35 && age_inmonths/12 <= 64)
+	else if ( age_inmonths/12 >= 35 && age_inmonths/12 <= 65)
 		return 3;
 	return -1;
 }

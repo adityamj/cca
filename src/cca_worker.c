@@ -43,8 +43,8 @@ void infected( struct ca_cell * cell){
 		}	
 	}
 	else {	*/
-		if( rand <= ( p = i_to_n_p( cell->age))){
-			cell->current_status = 5;
+		if( rand <= ( p = i_to_n_p( cell->age))){	
+			cell->current_status = 0;
 			cell->age_of_infection = 0;
 			infection_recovered();
 		}
@@ -62,6 +62,7 @@ void hsil( struct ca_cell * cell){
 	p = 0;
 	cell->age_of_infection++;
 	if( rand <= ( p = h_to_l_p( cell->age_of_infection))){ // recovery to lsil
+		if( cell->age_of_infection <= conf.h_to_l_time) 
 		hsil_to_lsil();
 		new_lsil();
 		cell->current_status = 2;
@@ -84,9 +85,10 @@ void lsil( struct ca_cell * cell){
 		cell->current_status = 3;
 	}
 	else if( rand <= ( p += l_to_i_p(cell->age, cell->age_of_infection)) ){	// cancer
-		cell->current_status = 5;
-		cell->age_of_infection = 0;
+		cell->current_status = 0;
+		if( cell->age_of_infection <= conf.l_to_n_time)	
 		lsil_to_normal();
+		cell->age_of_infection = 0;
 	}
 }
 
@@ -150,24 +152,21 @@ int should_infect( struct ca_grid *t, int x, int y, int z, double p){
 	int ineigh=0;
 	int ret = 0;
 	struct ca_cell * curr;
-	if( x == 0)
+	xx = x -2;
+	yy = y -2;
+	zz = z -2;
+	if( xx < 0)
 		xx = 0 ;
-	else 
-		xx = x - 1;
 
-	if( y == 0)
-		yy = 0;
-	else 
-		yy = y -1;
-
-	if ( z == 0)
-		zz = 0;
-	else
-		zz = z -1;
-
-	for( ; xx <= ( x+1) && xx < t->size; xx++)
-		for(; yy <= (y+1) && yy < t->size ; yy++)
-			for( ; zz <= (z+1) && zz < t->size; zz++){
+	for( ; (xx <= ( x+2)) && (xx < t->size); xx++){
+		yy = y -2;
+		if( yy < 0)
+			yy = 0;
+		for(; (yy <= (y+2)) && (yy < t->size) ; yy++){
+			zz = z -2;	
+			if ( zz < 0)
+				zz = 0;
+			for( ;( zz <= (z+2)) &&( zz < t->size); zz++){
 				curr = translate( t->cells, xx,yy,zz, t->size);
 				if( xx == x && yy == y && zz == z)
 					continue;
@@ -180,37 +179,80 @@ int should_infect( struct ca_grid *t, int x, int y, int z, double p){
 							}
 				}
 			}
+		}
+	}
 	return ret;
 }
 
+int get_num_ineigh( struct ca_grid *t, int x, int y, int z){
+	int xx, yy, zz;
+	int neigh=0;
+	struct ca_cell * curr;
+	xx = x -2;
+	yy = y -2;
+	zz = z -2;
+	if( xx < 0)
+		xx = 0 ;
+
+	if( yy < 0)
+		yy = 0;
+
+	if ( zz < 0)
+		zz = 0;
+
+	for( ; (xx <= ( x+2)) && (xx < t->size); xx++){
+		yy = y -2;
+		if( yy < 0)
+			yy = 0;
+		for(; (yy <= (y+2)) && (yy < t->size) ; yy++){
+			zz = z -2;	
+			if ( zz < 0)
+				zz = 0;
+			for( ;( zz <= (z+2)) &&( zz < t->size); zz++){
+				curr = translate( t->cells, xx,yy,zz, t->size);
+				if( xx == x && yy == y && zz == z)
+					continue;
+				if( curr->occupied)
+					if( curr->current_status % 5 !=0)
+					neigh++;
+			}
+		}
+	}
+	return neigh;
+}
 int get_num_neigh( struct ca_grid *t, int x, int y, int z){
 	int xx, yy, zz;
 	int neigh=0;
 	struct ca_cell * curr;
-	if( x == 0)
+	xx = x -2;
+	yy = y -2;
+	zz = z -2;
+	if( xx < 0)
 		xx = 0 ;
-	else 
-		xx = x - 1;
 
-	if( y == 0)
+	if( yy < 0)
 		yy = 0;
-	else 
-		yy = y -1;
 
-	if ( z == 0)
+	if ( zz < 0)
 		zz = 0;
-	else
-		zz = z -1;
 
-	for( ; xx <= ( x+1) && xx < t->size; xx++)
-		for(; yy <= (y+1) && yy < t->size ; yy++)
-			for( ; zz <= (z+1) && zz < t->size; zz++){
+	for( ; (xx <= ( x+2)) && (xx < t->size); xx++){
+		yy = y -2;
+		if( yy < 0)
+			yy = 0;
+		for(; (yy <= (y+2)) && (yy < t->size) ; yy++){
+			zz = z -2;	
+			if ( zz < 0)
+				zz = 0;
+			for( ;( zz <= (z+2)) &&( zz < t->size); zz++){
 				curr = translate( t->cells, xx,yy,zz, t->size);
 				if( xx == x && yy == y && zz == z)
 					continue;
 				if( curr->occupied)
 					neigh++;
 			}
+		}
+	}
 	return neigh;
 }
 
@@ -246,13 +288,19 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 					switch (t1_cell->current_status){
 						case 0:{
 							// S
+							int g;
+								g = tellag( t1_cell->age);
+								if( g < 0)
+								exit(507);	
 							t1_cell->num_p += (double) num_part(t_cell->age, t_cell->activity_group)/(double) 12 ;
 							num_p = t1_cell->num_p;
 							t1_cell->num_p -= num_p;
 							if ( ! num_p)
 								continue;
 							num_neigh = get_num_neigh( t, x,y,z);
-							ret = should_infect( t,x,y,z, (double) num_p/ num_neigh);
+//							ret = should_infect( t,x,y,z, (double) num_p/ num_neigh);
+							ret = chooseit( get_num_ineigh( t,x,y,z)/(double)get_num_neigh(t,x,y,z) *
+								conf.activity[g][t1_cell->activity_group] / 12 * conf.p_transmission) ;
 							if(ret){
 								// Infected
 								t1_cell->ever_infected = 1;

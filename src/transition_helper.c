@@ -53,19 +53,29 @@ int get_population(){	//func
 }
 
 double i_to_n_p( int age){	//func
-	return( conf.i_to_n[ age/12 - MIN_AGE ]) ;
+	double ret;
+ 	ret = ( conf.i_to_n[ age/12 - MIN_AGE ]) ;
+	return ret;
 }
 
 double i_to_l_p(){	//func
-	return (conf.i_to_l/conf.i_to_l_time);
+	double ret;
+	ret = (conf.i_to_l/conf.i_to_l_time);
+#ifdef DEBUG
+	ret = 0.35 / 72;
+#endif
+	return ret;
 } 
 
 double l_to_i_p(int age, int age_of_infection){	//func
 	double ret;
 	if( age_of_infection > conf.l_to_n_time )
-		ret = ( conf.l_to_n_frac - state.lsil_to_normal/state.lsil_total)/(double)( 120 - conf.l_to_n_time) ;
+		ret = ( conf.l_to_n_frac - (double) state.lsil_to_normal/(double)state.lsil_total)/(double)( 120 - conf.l_to_n_time) ;
 	else
 		ret = conf.l_to_n[ age/12 -MIN_AGE] ;
+#ifdef DEBUG
+	ret = 0.65 / 120;
+#endif
 
 	return ret;
 }
@@ -73,16 +83,23 @@ double l_to_i_p(int age, int age_of_infection){	//func
 double l_to_h_p ( int age) { //func
 	double ret;
 	ret = conf.l_to_h[ age/12 - MIN_AGE] / conf.l_to_h_time	;
-		
-
+#ifdef DEBUG
+	ret = 0.3/72;
+#endif
+	return ret;		
 }
 
 double h_to_l_p( int age_of_infection){	//func
 	double ret;
+	
 	if ( age_of_infection > conf.l_to_h_time)
-		ret = ( conf.h_to_l_frac - state.hsil_to_lsil/state.hsil_total )/(double)( 120 - conf.h_to_l_time) ;
+		ret = ( conf.h_to_l_frac - (double)state.hsil_to_lsil/(double)state.hsil_total )/( 120 - conf.h_to_l_time) ;
 	else
 		ret = conf.h_to_l / conf.h_to_l_time;
+	
+#ifdef DEBUG
+	ret = 0.4/120;
+#endif
 	return ret;
 }
 
