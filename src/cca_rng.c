@@ -23,7 +23,9 @@ int cca_rng_init(){
 }
 
 double cca_rng_get(){
-	return gsl_rng_uniform(r);
+	double rand;
+	rand = gsl_rng_uniform(r);
+	return rand;
 }
 
 int chooseit (double p){

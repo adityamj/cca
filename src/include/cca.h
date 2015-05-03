@@ -17,6 +17,7 @@ struct cca_conf{
 	double birth_rate;
 	int iterations;
 	int pass;
+	double calib_factor;
 	double death_rate;
 	double activity[4][4]; /*[age_group][activity_group]	*/
 	double age_dist[4][4]; /*[age_group][activity_group]	*/
@@ -39,10 +40,10 @@ struct cca_conf{
 	double l_to_h[70];
 	int   l_to_h_time;
 	double h_to_l;
-	double h_to_l_time;
+	int h_to_l_time;
 	double h_to_l_frac;
 	double h_to_c;
-	double h_to_c_time;
+	int h_to_c_time;
 	double r_to_n;
 	int r_to_n_time;
 	double c_to_d;
@@ -51,12 +52,5 @@ struct cca_conf{
 
 extern struct cli_opts opts;
 extern struct cca_conf conf;
-
-
-
-
-
-
-
 
 #endif	

@@ -29,7 +29,6 @@ int read_cli( struct cli_opts * opts, int argc, char ** argv ){
 	char * cvalue;
 
 	memset( opts , 0 , sizeof( *opts));
-	fprintf(stderr,"sizeof(*opts): %lu\n",sizeof(*opts));
 	while (( c = getopt (argc, argv, "d:c:p:n:")) != -1 ){
 		switch (c){
 			case 'd':
@@ -70,7 +69,7 @@ int cca_main_loop(){
 	pid_t pid;
 	int count;
 	int status;
-	int ret;
+	int ret = 0;
 	int active_workers;
 	for( count = 0, active_workers=0 ; count < conf.iterations; count++){
 		if(! (pid=fork())){
@@ -108,12 +107,6 @@ int main(int argc, char ** argv){
 		/*	Error reading the configuration file, crib and exit	*/
 		fprintf(stderr,"Unable to parse Configuration file. Please verify.\n");
 		exit (300+ret);
-	}
-
-	if ( ( ret = check_conf( &conf ))){
-		/*	Check if the conf file contains all necessary things	*/
-		fprintf(stderr,"Config file verification failed.\n");
-		exit ( 310 + ret );
 	}
 
 	ret = cca_main_loop (  )  ;

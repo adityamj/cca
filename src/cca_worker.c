@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -5,7 +6,9 @@
 #include <transition_helper.h>
 #include <cca_ca.h>
 #include <cca.h>
+#include <cca_config.h>
 #include <cca_groups.h>
+#include <cca_rng.h>
 #include <string.h>
 /*	Age
 	Activity group
@@ -105,16 +108,17 @@ void cancer( struct ca_cell * cell){
 }
 
 void populate(struct ca_grid * t){
-	int size;
-	double rand;
+	int size = 0;
+	double rand = 0;
 	int age;
 	int target_population, age_target_population, achieved;
 	int index;
 	size = t->size * t->size * t->size;
 	struct ca_cell * curr_cell;
 	target_population = size * conf.population_density;
+	fprintf(stderr, "polulation target:%d\n",target_population);
 	for( age = MIN_AGE; age <= MAX_AGE ; age++){
-		age_target_population = target_population * conf.age_ratio[ age - MIN_AGE] ;
+		age_target_population = (double)target_population * conf.age_ratio[ age - MIN_AGE] ;
 		achieved = 0;
 		for ( achieved = 0; achieved <= age_target_population ; achieved++){
 			rand = cca_rng_get();
@@ -129,7 +133,7 @@ void populate(struct ca_grid * t){
 			curr_cell->age =age * 12;
 			curr_cell->activity_group = acg_oracle(curr_cell->age);
 			rand = cca_rng_get();
-			if ( rand <= conf.asir[ age-MIN_AGE ]){
+			if ( rand <= conf.asir[ age -MIN_AGE ]){
 				curr_cell->current_status = 1;	
 				new_infected();
 			}
@@ -166,7 +170,7 @@ int should_infect( struct ca_grid *t, int x, int y, int z, double p){
 				if( curr->occupied){
 					if( chooseit( p))
 						if( curr->current_status % 5 !=0)
-							if( chooseit( 0.5)){
+							if( chooseit( conf.p_transmission)){
 								ret = 1;
 								return ret;
 							}
@@ -215,8 +219,8 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 	int num_neigh;
 	int ret;
 	double probability;
-	for( x = 0; x < t->size; x++)
-		for( y = 0; y < t->size; y++)
+	for( x = 0; x < t->size; x++){
+		for( y = 0; y < t->size; y++){
 			for ( z = 0; z< t->size ; z++){
 				t_cell = translate (t->cells , x,y,z, t->size);
 				t1_cell = translate ( t1->cells, x,y,z, t->size);
@@ -275,13 +279,14 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 							break;
 						}
 					}
-					
 				}
 				else{
 				// add a new individual to the simulation ?birth()
 					sim_birth( t1_cell);
 				}
 			}	
+		}
+	}
 
 }
 int do_reporting( struct ca_grid * t, int count, int pid){
@@ -300,7 +305,8 @@ int do_reporting( struct ca_grid * t, int count, int pid){
 		if(fname == NULL)
 			return 2;
 		snprintf( fname, sizeoffn, "%s/%s_%d.out",opts.data_dir, opts.prefix, pid);
-		if( (fp = fopen( fname, "a")) == NULL)
+		fprintf(stderr, "datafile name: %s\n", fname);
+		if( (fp = fopen( fname, "w")) == NULL)
 			return 1;
 		fprintf(fp,"time, age_group, status, number\n");
 		init = 1;
@@ -339,23 +345,27 @@ int worker_fork(int pindex){
 	struct ca_grid  t;
 	struct ca_grid  t1;
 	struct ca_grid  swap;
+	int memsize;
+	memsize = conf.size*conf.size*conf.size;
 	t.size = conf.size;
 	t1.size = conf.size;
+	
         if((ret = cca_rng_init()))
 		return (ret+30);	
 	
-	if ( ( t.cells = (struct ca_cell *) calloc( conf.size*conf.size*conf.size, sizeof(struct ca_cell))) == NULL){
-		fprintf(stderr,"Unable to allocate memory. exiting.\n");
+	if ( ( t.cells = (struct ca_cell *) calloc( memsize, sizeof(struct ca_cell))) == NULL){
+		fprintf(stderr,"Unable to allocate memory. exiting. size: %d\nstruct size: %lu\ntotal mem req: %lu", memsize, sizeof(struct ca_cell), memsize*sizeof(struct ca_cell));
+		
 		return (8);
 	}
 
-	if ( ( t1.cells = (struct ca_cell *) calloc( conf.size*conf.size*conf.size, sizeof(struct ca_cell))) == NULL){
+	if ( ( t1.cells = (struct ca_cell *) calloc( memsize, sizeof(struct ca_cell))) == NULL){
 		fprintf(stderr,"Unable to allocate memory. exiting.\n");
 		return (8);
 	}
-
+	do_reporting( &t, -1, pindex);
 	populate(&t);
-
+do_reporting( &t, count, pindex);
 /* Now populated, rand init complete. start simulattion	*/
 	for( count = 0; count <= conf.pass; count++){
 		if( count%12 == 0)
@@ -370,8 +380,15 @@ int worker_fork(int pindex){
 				free(t1.cells);
 				return ( ret + 20);
 			    }
+		if( count%(12) == 0)
+			reset_yearly_counts(); // vaccination & screening
+		simulate( &t, &t1);
+		swap.cells = t.cells;
+		t.cells = t1.cells;
+		t1.cells = swap.cells;
 		}
 	}
+	fprintf(stderr, "simualtion completed\ncount:%d\n",count);
 	if( (ret = do_reporting( &t, count, pindex)) ){
 		free(t.cells);
 		free(t1.cells);
