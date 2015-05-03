@@ -433,12 +433,6 @@ do_reporting( &t, -2, pindex);
 				free(t1.cells);
 				return ( ret + 20);
 			    }
-		if( count%(12) == 0)
-			reset_yearly_counts(); // vaccination & screening
-		simulate( &t, &t1);
-		swap.cells = t.cells;
-		t.cells = t1.cells;
-		t1.cells = swap.cells;
 		}
 	}
 	fprintf(stderr, "simualtion completed\ncount:%d\n",count);
