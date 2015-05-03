@@ -36,13 +36,13 @@ void infected( struct ca_cell * cell){
 	double rand;
 	rand = cca_rng_get();
 	cell->age_of_infection++;
-	if( cell->age_of_infection == 1){
+/*	if( cell->age_of_infection == 1){
 		if( chooseit( conf.i_to_h)){
 			new_hsil();
 			cell->current_status = 3;
 		}	
 	}
-	else {
+	else {	*/
 		if( rand <= ( p = i_to_n_p( cell->age))){
 			cell->current_status = 5;
 			cell->age_of_infection = 0;
@@ -52,7 +52,7 @@ void infected( struct ca_cell * cell){
 			cell->current_status = 2;
 			new_lsil();
 		}
-	}
+//	}
 }
 
 void hsil( struct ca_cell * cell){
@@ -133,6 +133,10 @@ void populate(struct ca_grid * t){
 			curr_cell->age =age * 12;
 			curr_cell->activity_group = acg_oracle(curr_cell->age);
 			rand = cca_rng_get();
+			if( curr_cell->current_status ){
+				//very unlikely
+				fprintf(stderr,"non zero status in populate. status:%d\tactivityg:%d\n",curr_cell->current_status, acg_oracle(curr_cell->age));
+			}
 			if ( rand <= conf.asir[ age -MIN_AGE ]){
 				curr_cell->current_status = 1;	
 				new_infected();
@@ -355,7 +359,7 @@ int worker_fork(int pindex){
 	
 	if ( ( t.cells = (struct ca_cell *) calloc( memsize, sizeof(struct ca_cell))) == NULL){
 		fprintf(stderr,"Unable to allocate memory. exiting. size: %d\nstruct size: %lu\ntotal mem req: %lu", memsize, sizeof(struct ca_cell), memsize*sizeof(struct ca_cell));
-		
+			
 		return (8);
 	}
 
@@ -365,9 +369,10 @@ int worker_fork(int pindex){
 	}
 	do_reporting( &t, -1, pindex);
 	populate(&t);
-do_reporting( &t, count, pindex);
+do_reporting( &t, -2, pindex);
 /* Now populated, rand init complete. start simulattion	*/
 	for( count = 0; count <= conf.pass; count++){
+		fprintf(stderr, "fork:%d\tSIM_round:%d\n",pindex,count);
 		if( count%12 == 0)
 			reset_yearly_counts(); // vaccination & screening
 		simulate( &t, &t1);
