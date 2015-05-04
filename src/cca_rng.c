@@ -1,20 +1,26 @@
 #include <gsl/gsl_rng.h>
 #include <stdlib.h>
 #include <cca_rng.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 static gsl_rng * r;
 
 int cca_rng_init(){
-	FILE * fp;
+	int fd;
 	unsigned long int seed;
+	int rv;
 	const gsl_rng_type * T;
-	fp = fopen("/dev/urandom","r");
-	if( fp == NULL){
+	fd = open("/dev/urandom", O_RDONLY);
+	if( fd < 0){
 		fprintf(stderr,"Error opening /dev/urandom. exiting\n");
 		return (1);
 	}
-	fread(&seed, sizeof(seed), 1, fp);	
+	while( (rv =	read( fd, &seed, sizeof(seed))) == 0 )	;	
+	close(fd);
 	setenv( "GSL_RNG_TYPE",DEFAULT_RNG_TYPE, 0);
+	fprintf(stderr, "SEED: %lu\n",seed);
 	gsl_rng_env_setup();
 	T = gsl_rng_default;
 	r = gsl_rng_alloc (T);
