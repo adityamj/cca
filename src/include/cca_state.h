@@ -16,6 +16,6 @@ struct cca_state{
 	int pop_yb;
 };
 
-#define CCA_STATE_INIT  { 0,0,0,0,0,0,0,0,0,0}
+#define CCA_STATE_INIT  { 0,0,0,0,0,0,0,0,0,0,0,0,0}
 
 #endif
