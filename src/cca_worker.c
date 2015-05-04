@@ -421,6 +421,7 @@ do_reporting( &t, -2, pindex);
 /* Now populated, rand init complete. start simulattion	*/
 	for( count = 0; count <= conf.pass; count++){
 		fprintf(stderr, "fork:%d\tSIM_round:%d\n",pindex,count);
+		new_month();
 		if( count%12 == 0)
 			reset_yearly_counts(); // vaccination & screening
 		simulate( &t, &t1);

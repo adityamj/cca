@@ -11,6 +11,9 @@ struct cca_state{
 	int infected_to_normal;
 	int yearly_vaccinated;
 	int yearly_screened;
+	int death;
+	int ytd;
+	int pop_yb;
 };
 
 #define CCA_STATE_INIT  { 0,0,0,0,0,0,0,0,0,0}

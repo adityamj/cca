@@ -8,7 +8,7 @@
 static struct cca_state state = CCA_STATE_INIT;
 double birth_p(){
 	double p;
-	p = ((conf.birth_rate * state.population) /  ( conf.size*conf.size*conf.size - state.population))/12;
+	p = (conf.birth_rate * state.pop_yb) /12;
 	return p;
 }
 void new_infected(){ state.total_infected++; }
@@ -18,6 +18,9 @@ void new_lsil(){ state.lsil_total++; }
 void reset_yearly_counts(){//func
 	state.yearly_vaccinated = 0;
 	state.yearly_screened = 0;
+	state.death = 0;
+	state.pop_yb = state.population;
+	state.ytd = 1;
 }
 void hsil_to_lsil(){ state.hsil_to_lsil++; }
 
@@ -29,6 +32,8 @@ void infection_recovered(){ state.infected_to_normal++; }
 
 void new_cancer(){ state.total_cancer++; }
 
+void new_month(){	state.ytd++;}
+
 int should_die(struct ca_cell * cell ){	//func
 	static double m_death_rate;
 	double rand;
@@ -36,7 +41,7 @@ int should_die(struct ca_cell * cell ){	//func
 	int ret = 0;
 	if(!initialized){
 		initialized = 1;
-		m_death_rate = conf.death_rate / 12 ;
+		m_death_rate = (conf.death_rate/12) - (state.death/(float) state.pop_yb )/ (state.ytd) ;
 	}
 	if( (rand = cca_rng_get()) <= m_death_rate)
 		ret = 1;
@@ -44,7 +49,7 @@ int should_die(struct ca_cell * cell ){	//func
 	return ret;
 }
 
-void death(){	state.population--; }
+void death(){	state.population--; state.death++; }
 
 void birth(){	state.population++; }
 
