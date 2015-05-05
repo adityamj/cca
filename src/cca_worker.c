@@ -64,7 +64,6 @@ void hsil( struct ca_cell * cell){
 	if( rand <= ( p = h_to_l_p( cell->age_of_infection))){ // recovery to lsil
 		//if( cell->age_of_infection <= conf.h_to_l_time) 
 			hsil_to_lsil();
-		new_lsil();
 		cell->current_status = 2;
 	}
 	else if( rand <= ( p += h_to_c_p()) ){	// cancer
@@ -366,6 +365,10 @@ int do_reporting( struct ca_grid * t, int count, int pid){
 		fprintf(fp,"time, age_group, status, number\n");
 		init = 1;
 	}
+	if (init &&  pid < 0){
+		fclose(fp);
+		return 0;
+	}
 	for( c = 0; c < limit; c++){
 		curr = t->cells + c;
 		ag = tellag( curr->age);	
@@ -453,5 +456,6 @@ int worker_fork(int pindex){
 		free(t1.cells);
 		return ( ret + 20);
 	}
+	ret = do_reporting( 0,0,-1);
 	return 0;
 }
