@@ -27,6 +27,8 @@ int parse_conf( const struct cli_opts * opts, struct cca_conf * conf){
 		ERR("birth_rate required"); err++; }
 	if( !config_lookup_int( cr, "iterations", &conf->iterations)){
 		ERR("iterations required"); err++;	}
+	if( !config_lookup_float( cr, "l_to_n_frac", &conf->l_to_n_frac)){
+		ERR("l_to_n_frac required"); err++;	}
 	if( !config_lookup_float( cr, "death_rate", &conf->death_rate)){
 		ERR("death_rate required"); err++;	}
 	if( !config_lookup_int(cr,"pass", &conf->pass)){
