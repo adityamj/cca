@@ -8,7 +8,7 @@
 static struct cca_state state = CCA_STATE_INIT;
 double birth_p(){
 	double p;
-	p = (conf.birth_rate) /12;
+	p = ((conf.birth_rate) * state.population )	/ (12*( conf.size*conf.size*conf.size - state.population ));
 	return p;
 }
 void new_infected(){ state.total_infected++; }
@@ -22,7 +22,7 @@ void reset_yearly_counts(){//func
 	state.pop_yb = state.population;
 	state.ytd = 1;
 }
-void hsil_to_lsil(){ state.hsil_to_lsil++; }
+void hsil_to_lsil(){ state.hsil_to_lsil++;  new_lsil();}
 
 void new_hsil(){ state.hsil_total++; }
 
@@ -117,8 +117,14 @@ void print_state_stats(FILE *fp){
 	fprintf(fp, "population: %d\n\
 Infected:\t %d\n\
 HSIL_total:\t %d\n\
-HSIL_to_LSIL:\t %d\n\
+HSIL_to_LSIL ratio:\t %f\n\
 LSIL_total:\t %d\n\
-dead:\t %d\n", state.population, state.total_infected - state.infected_to_normal, state.hsil_total, state.hsil_to_lsil, state.lsil_total, state.death);
+LSIL to normal ratio:\t %f \n\
+dead:\t %d\n",state.population, 
+			state.total_infected - state.infected_to_normal	, 
+			state.hsil_total, 
+			state.hsil_to_lsil/(double)state.hsil_total,
+			state.lsil_total,state.lsil_total/(double)state.lsil_to_normal,
+			state.death);
 }
 
