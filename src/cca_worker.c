@@ -44,20 +44,13 @@ void infected( struct ca_cell * cell){
 		}	
 
 	if( rand <= ( p = i_to_n_p( cell->age))){	
-		cell->current_status = 0;
+		cell->current_status = 5;
 		cell->age_of_infection = 0;
 		infection_recovered();
 	}
-	else {	
-		if( rand <= ( p = i_to_n_p( cell->age))){	
-			cell->current_status = 0;
-			cell->age_of_infection = 0;
-			infection_recovered();
-		}
-		else if ( rand <= ( p+= i_to_l_p())){
-			cell->current_status = 2;
-			new_lsil();
-		}
+	else if ( rand <= ( p+= i_to_l_p())){
+		cell->current_status = 2;
+		new_lsil();
 	}
 }
 
@@ -90,7 +83,7 @@ void lsil( struct ca_cell * cell){
 		cell->current_status = 3;
 	}
 	else if( rand <= ( p += l_to_i_p(cell->age, cell->age_of_infection)) ){
-		cell->current_status = 0;
+		cell->current_status = 5;
 		if( cell->age_of_infection <= conf.l_to_n_time)	
 			lsil_to_normal();
 		cell->age_of_infection = 0;
@@ -300,13 +293,13 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 							g = tellag( t1_cell->age);
 							if( g < 0)
 								exit(507);	
-							t1_cell->num_p += (double) num_part(t_cell->age, t_cell->activity_group)/(double) 12 ;
+							t1_cell->num_p += num_part(t_cell->age, t_cell->activity_group)/ 12 ;
 							num_p = t1_cell->num_p;
 							t1_cell->num_p -= num_p;
 							if ( ! num_p)
 								continue;
 							num_neigh = get_num_neigh( t, x,y,z);
-							ret = should_infect( t,x,y,z, (double) num_p/ num_neigh);
+							ret = should_infect( t,x,y,z, ((double) num_p) / num_neigh);
 /*							ret = chooseit( get_num_ineigh( t,x,y,z)/(double)get_num_neigh(t,x,y,z) *
 									conf.activity[g][t1_cell->activity_group] / 12 * conf.p_transmission) ;				*/
 							if(ret){
