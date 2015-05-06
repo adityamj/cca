@@ -36,11 +36,17 @@ void infected( struct ca_cell * cell){
 	double rand;
 	rand = cca_rng_get();
 	cell->age_of_infection++;
-	if( cell->age_of_infection <= 1){
+	if( cell->age_of_infection <= 1)
 		if( chooseit( conf.i_to_h)){
 			new_hsil();
 			cell->current_status = 3;
+			return;
 		}	
+
+	if( rand <= ( p = i_to_n_p( cell->age))){	
+		cell->current_status = 0;
+		cell->age_of_infection = 0;
+		infection_recovered();
 	}
 	else {	
 		if( rand <= ( p = i_to_n_p( cell->age))){	

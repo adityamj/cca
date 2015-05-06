@@ -49,7 +49,7 @@ int get_population(){	//func
 
 double i_to_n_p( int age){	//func
 	double ret;
- 	ret = ( conf.i_to_n[ age/12 - MIN_AGE ]) ;
+ 	ret = ( conf.i_to_n[ age/12 - MIN_AGE ])/ conf.i_to_n_time ;
 	return ret;
 }
 
