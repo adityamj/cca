@@ -349,6 +349,7 @@ int do_reporting( struct ca_grid * t, int count, int pid){
 	int c, limit;
 	int ag;
 	int sizeoffn;
+	int total = 0;
 	char * fname;
 	struct ca_cell * curr;
 	limit = conf.size*conf.size*conf.size;
@@ -361,7 +362,7 @@ int do_reporting( struct ca_grid * t, int count, int pid){
 		fprintf(stderr, "datafile name: %s\n", fname);
 		if( (fp = fopen( fname, "w")) == NULL)
 			return 1;
-		fprintf(fp,"time, age_group, status, number\n");
+		fprintf(fp,"time, age_group, status, number, total_population\n");
 		init = 1;
 	}
 	if (init &&  pid < 0){
@@ -371,26 +372,29 @@ int do_reporting( struct ca_grid * t, int count, int pid){
 	for( c = 0; c < limit; c++){
 		curr = t->cells + c;
 		ag = tellag( curr->age);	
-		switch ( curr->current_status){
-			case 1:
-				inf[ag]++;
-				break;
-			case 2:
-				lsil[ag]++;
-				break;
-			case 3:
-				hsil[ag]++;
-				break;
-			case 4:
-				cancer[ag]++;
-				break;
+		if ( curr->occupied ){
+			total++;
+			switch ( curr->current_status){
+				case 1:
+					inf[ag]++;
+					break;
+				case 2:
+					lsil[ag]++;
+					break;
+				case 3:
+					hsil[ag]++;
+					break;
+				case 4:
+					cancer[ag]++;
+					break;
+			}
 		}
 	}
 	for( c=0; c< 4; c++){
-		fprintf(fp, "%d,%d,infected,%d\n",count, c, inf[c]);
-		fprintf(fp, "%d,%d,lsil,%d\n",count, c, lsil[c]);
-		fprintf(fp, "%d,%d,hsil,%d\n",count, c, hsil[c]);
-		fprintf(fp, "%d,%d,cancer,%d\n",count, c, cancer[c]);
+		fprintf(fp, "%d,%d,infected,%d,%d\n",count, c, inf[c], total);
+		fprintf(fp, "%d,%d,lsil,%d,%d\n",count, c, lsil[c], total);
+		fprintf(fp, "%d,%d,hsil,%d,%d\n",count, c, hsil[c], total);
+		fprintf(fp, "%d,%d,cancer,%d,%d\n",count, c, cancer[c], total);
 	}
 	fflush ( fp);
 	return 0;
@@ -428,12 +432,12 @@ int worker_fork(int pindex){
 	for( count = 0 ; count < memsize ; count ++)
 		(swap + count)->num_p = 0;
 	/* Now populated, rand init complete. start simulattion	*/
-	for( count = 0; count <= conf.pass; count++){
+	for( count = 1; count <= conf.pass; count++){
 		fprintf(stderr, "fork:%d\tSIM_round:%d\n",pindex,count);
 		new_month();
+		simulate( &t, &t1);
 		if( count%12 == 0)
 			reset_yearly_counts(); // vaccination & screening
-		simulate( &t, &t1);
 		swap = t.cells;
 		t.cells = t1.cells;
 		t1.cells = swap;
