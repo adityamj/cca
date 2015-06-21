@@ -57,6 +57,17 @@ int parse_conf( const struct cli_opts * opts, struct cca_conf * conf){
 		ERR("h_to_c required");	err++;	}
 	if( !config_lookup_int( cr, "h_to_c_time", &conf->h_to_c_time)){
 		ERR("h_to_c_time required");	err++;	}
+	if( !config_lookup_int( cr, "enable_vaccination", &conf->enable_vaccination)){
+		ERR("vaccination_enable required"); err++;	
+	}
+	if( &conf->enable_vaccination){
+	if( !config_lookup_float( cr, "vaccination_rate", &conf->vaccination_rate)){
+		ERR("vaccination rate required if vaccination enabled");	err++;	}
+		
+	if( !config_lookup_float( cr, "vaccine_efficacy", &conf->vaccine_efficacy)){
+		ERR("vaccination efficacy required if vaccination enabled");	err++;	}
+		
+	}
 	if( !config_lookup_float(cr, "r_to_n", &conf->r_to_n )){
 		ERR("r_to_n required");	err++;	}
 	if( !config_lookup_int(cr, "r_to_n_time", &conf->r_to_n_time)){

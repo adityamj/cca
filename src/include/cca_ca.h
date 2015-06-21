@@ -11,6 +11,7 @@ struct ca_cell {
 	int current_status; /* 0->S; 1->I ; 2->l ; 3->h ; 4: cancer; 5: natural immunity	*/
 	int activity_group;
 	int ever_infected;
+	int vaccinated;
 	double num_p;
 };
 

@@ -13,7 +13,7 @@ struct cli_opts {
 struct cca_conf{
 	int size;
 	double population_density;
-	float age_ratio[70];
+	double age_ratio[70];
 	double birth_rate;
 	int iterations;
 	int pass;
@@ -24,7 +24,6 @@ struct cca_conf{
 	double p_transmission;
 	double init_prevalence;
 	double screening_rate;
-	double vaccination_rate;
 	double v_eff;
 	int min_age;
 	int max_age;
@@ -48,6 +47,9 @@ struct cca_conf{
 	int r_to_n_time;
 	double c_to_d;
 	int c_to_d_time;
+	int enable_vaccination;
+	double vaccination_rate;
+	double vaccine_efficacy;
 };
 
 extern struct cli_opts opts;

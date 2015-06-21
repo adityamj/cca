@@ -24,7 +24,15 @@ void sim_birth( struct ca_cell * cell){
 		cell->age = MIN_AGE * 12;
 		birth();
 		p = cca_rng_get();
+		if( conf.enable_vaccination)	// vaccination is enabled
+			if( chooseit( conf.vaccination_rate) ) 
+					cell->vaccinated = 1;
+
+		
 		if ( p <= conf.asir[ cell->age-MIN_AGE ]){
+			if ( cell->vaccinated )
+			if ( chooseit( conf.vaccine_efficacy))	
+				return ;
 			cell->current_status = 1;	
 			new_infected();
 		}
@@ -303,7 +311,10 @@ void simulate ( struct ca_grid * t, struct ca_grid * t1){
 /*							ret = chooseit( get_num_ineigh( t,x,y,z)/(double)get_num_neigh(t,x,y,z) *
 									conf.activity[g][t1_cell->activity_group] / 12 * conf.p_transmission) ;				*/
 							if(ret){
-								// Infected
+								//o Infected
+								if( t1_cell->vaccinated )
+									if( chooseit( conf.vaccine_efficacy))
+										break;
 								t1_cell->ever_infected = 1;
 								new_infected();
 								t1_cell->age_of_infection = 0;
