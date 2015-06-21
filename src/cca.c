@@ -13,7 +13,8 @@ struct cli_opts opts;
 struct cca_conf conf;
 
 void getopt_msg(){
-	fprintf(stderr,"Unrecognized option\nUsage: ccs <option> <arg> ....\n\
+	fprintf(stderr,"CCA %s\tmtune=%s\n\
+Unrecognized option\nUsage: ccs <option> <arg> ....\n\
 Required options:\n\
 -d: Data directory\n\
 -c: Configuration file\n\
@@ -21,7 +22,7 @@ Required options:\n\
 -n: Number of child processes. Generally it is a good idea to use Num_cores - 1 for the system to be responsive.\n\n\
 Environment Variables - optional:\n\
 GSL_RNG_TYPE: Should contain a valid RNG type. Defaults to ranlxd2\n\n\
-In case an option is provided multiple times, only the last provided value is used.\n");
+In case an option is provided multiple times, only the last provided value is used.\n", CCA_VERSION, CCA_MTUNE);
 }
 
 int read_cli( struct cli_opts * opts, int argc, char ** argv ){
